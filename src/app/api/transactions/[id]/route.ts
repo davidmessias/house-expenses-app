@@ -33,10 +33,9 @@ export async function PUT(req: NextRequest, context: { params: Promise<{ id: str
   return NextResponse.json({ ok: true });
 }
 
-export async function DELETE(req: NextRequest, context: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, context: { params: Promise<{ id: string }> }) {
   const userId = await requireUser();
-  const params = await context.params;
-  const { id } = params;
+  const { id } = await context.params;
   const sk = decodeURIComponent(id);
   try {
     await ddb.send(new DeleteCommand(key(userId, sk)));

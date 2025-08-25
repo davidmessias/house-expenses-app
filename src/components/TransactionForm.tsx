@@ -17,7 +17,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 export default function TransactionForm({ onCreated }: { onCreated: () => void }) {
-  const { register, handleSubmit, watch, setValue, formState: { errors }, reset } = useForm<FormData>({
+  const { register, handleSubmit, watch, setValue, reset } = useForm<FormData>({
     resolver: zodResolver(schema), defaultValues: { currency: 'EUR', date: new Date().toISOString().slice(0,10), kind: 'expense' }
   });
 

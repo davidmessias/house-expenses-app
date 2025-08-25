@@ -1,6 +1,12 @@
 'use client';
 
-export default function FiltersBar({ value, onChange }: { value: any; onChange: (v: any) => void }) {
+type Filters = {
+  month?: string;
+  direction?: string;
+  mode?: string;
+};
+
+export default function FiltersBar({ value, onChange }: { value: Filters; onChange: (v: Filters) => void }) {
   const set = (k: string, v: string) => onChange({ ...value, [k]: v || undefined });
   return (
     <div className="bg-white p-4 rounded-xl shadow grid md:grid-cols-4 gap-3">

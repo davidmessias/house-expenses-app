@@ -1,7 +1,19 @@
 'use client';
 import { fromCents } from '@/lib/amount';
+type Transaction = {
+  PK: string;
+  SK: string;
+  id?: string;
+  date: string;
+  kind: string;
+  mode: string;
+  direction: string;
+  description?: string;
+  currency: string;
+  amountCents: number;
+};
 
-export default function TransactionsTable({ items, onChanged }: { items: any[]; onChanged: () => void }) {
+export default function TransactionsTable({ items, onChanged }: { items: Transaction[]; onChanged: () => void }) {
   async function del(sk: string, pk: string, id?: string) {
     if (!confirm('Delete entry?')) return;
     console.log(`[UI] Delete requested for transaction id: ${id}`);
@@ -35,7 +47,7 @@ export default function TransactionsTable({ items, onChanged }: { items: any[]; 
         <tbody>
           {items.map((it, idx) => (
             <tr
-              key={it.sk || it.id || idx}
+              key={it.SK || it.id || idx}
               className={`border-t ${it.direction === 'debit' ? 'bg-red-50' : it.direction === 'credit' ? 'bg-green-50' : ''}`}
             >
               <td className="py-2">{it.date}</td>

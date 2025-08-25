@@ -1,8 +1,17 @@
 "use client";
+
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LoginContent />
+    </Suspense>
+  );
+
+function LoginContent() {
   const params = useSearchParams();
   const callbackUrl = params.get("callbackUrl") || "/";
   return (
@@ -19,4 +28,5 @@ export default function LoginPage() {
       </div>
     </div>
   );
+}
 }

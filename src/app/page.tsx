@@ -24,7 +24,19 @@ type SessionData = {
 export default function Page() {
   const { data: session, status } = useSession() as { data: SessionData; status: string };
   const router = useRouter();
-  const [items, setItems] = useState<any[]>([]);
+  type Transaction = {
+    PK: string;
+    SK: string;
+    id?: string;
+    date: string;
+    kind: string;
+    mode: string;
+    direction: string;
+    description?: string;
+    currency: string;
+    amountCents: number;
+  };
+  const [items, setItems] = useState<Transaction[]>([]);
   const [filters, setFilters] = useState<{ month?: string; direction?: string; mode?: string }>({});
   // Removed refreshKey state
 
@@ -47,7 +59,7 @@ export default function Page() {
       setItems([]);
     }
   }
-  useEffect(() => { if (status === 'authenticated') load(); }, [filters, status]);
+  // Remove useEffect for filters/status. Only call load() when month changes or after add/delete.
 
   const summary = useMemo(() => {
     let income = 0, expense = 0;
@@ -84,11 +96,19 @@ export default function Page() {
           Logout
         </button>
       </div>
-      <FiltersBar value={filters} onChange={setFilters} />
+      <FiltersBar
+        value={filters}
+        onChange={f => {
+          setFilters(f);
+          if (f.month !== filters.month) {
+            load(); // Only refresh when month changes
+          }
+        }}
+      />
       <SummaryCards {...summary} />
       <div className="grid md:grid-cols-2 gap-6">
-        <TransactionForm onCreated={load} />
-        <TransactionsTable items={items} onChanged={load} />
+  <TransactionForm onCreated={load} />
+  <TransactionsTable items={items} onChanged={load} />
       </div>
     </div>
   );
