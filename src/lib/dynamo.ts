@@ -2,7 +2,7 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 
 let client: DynamoDBClient;
-if (process.env.NODE_ENV === 'development') {
+if (process.env.FINANCE_ENV === 'development') {
   // Use local credentials if available
   client = new DynamoDBClient({
     region: process.env.FINANCE_AWS_REGION,
