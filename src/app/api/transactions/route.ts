@@ -131,10 +131,11 @@ export async function GET(req: NextRequest) {
       }),
     );
     return NextResponse.json(res.Items ?? []);
-  } catch (err) {
+  } catch (err: unknown) {
     console.error('[API] GET /api/transactions - DynamoDB error', err);
+    const message = err instanceof Error ? err.message : String(err);
     return NextResponse.json(
-      { error: 'DynamoDB error', details: String((err as any)?.message ?? err) },
+      { error: 'DynamoDB error', details: message },
       { status: 500 },
     );
   }
@@ -150,9 +151,10 @@ export async function POST(req: NextRequest) {
   try {
     parsed = CreateSchema.parse(body);
     console.log('[API] POST /api/transactions - parsed body', parsed);
-  } catch (err) {
+  } catch (err: unknown) {
     console.error('[API] POST /api/transactions - validation error', err);
-    return NextResponse.json({ error: 'Validation error', details: err }, { status: 400 });
+    const message = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error: 'Validation error', details: message }, { status: 400 });
   }
 
   // Domain rules
@@ -200,10 +202,11 @@ export async function POST(req: NextRequest) {
     await ddb().send(new PutCommand({ TableName: TABLE, Item: item }));
     console.log('[API] POST /api/transactions - item inserted', item);
     return NextResponse.json(item, { status: 201 });
-  } catch (err) {
+  } catch (err: unknown) {
     console.error('[API] POST /api/transactions - DynamoDB error', err, item);
+    const message = err instanceof Error ? err.message : String(err);
     return NextResponse.json(
-      { error: 'DynamoDB error', details: String((err as any)?.message ?? err) },
+      { error: 'DynamoDB error', details: message },
       { status: 500 },
     );
   }
