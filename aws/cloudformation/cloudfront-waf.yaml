@@ -1,0 +1,27 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudFront Distribution and WAF for House Expenses App
+Resources:
+  HouseExpensesWAF:
+    Type: AWS::WAFv2::WebACL
+    Properties:
+      Name: HouseExpensesWAF
+      Scope: CLOUDFRONT
+      DefaultAction:
+        Allow: {}
+      VisibilityConfig:
+        SampledRequestsEnabled: true
+        CloudWatchMetricsEnabled: true
+        MetricName: HouseExpensesWAF
+      Rules: []
+  HouseExpensesCloudFront:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        DefaultCacheBehavior:
+          TargetOriginId: amplify-app
+          ViewerProtocolPolicy: redirect-to-https
+        Origins:
+          - Id: amplify-app
+            DomainName: <AMPLIFY_DOMAIN>
+        WebACLId: !GetAtt HouseExpensesWAF.Arn

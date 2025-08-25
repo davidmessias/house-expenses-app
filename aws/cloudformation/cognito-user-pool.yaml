@@ -1,0 +1,16 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Cognito User Pool for House Expenses App
+Resources:
+  HouseExpensesUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: HouseExpensesUserPool
+      AutoVerifiedAttributes:
+        - email
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireUppercase: true
+          RequireLowercase: true
+          RequireNumbers: true
+          RequireSymbols: true

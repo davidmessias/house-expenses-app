@@ -1,3 +1,40 @@
+# House Expenses App
+
+This app manages house expenses using AWS services. See architecture for details.
+
+## Features
+- Expense tracking
+- User authentication (Cognito)
+- Data storage (DynamoDB)
+- Hosting (Amplify)
+- Security (WAF, CloudFront)
+
+## Setup
+- Next.js + TypeScript
+- Tailwind CSS
+- AWS resources in eu-central-1
+
+## AWS Infrastructure
+- DynamoDB table with GSIs
+- Cognito User Pool
+- Amplify app (hosting, custom domain)
+- WAF on CloudFront
+
+IAM objects are excluded as required.
+
+## How to run
+```bash
+npm run dev
+```
+
+## How to build
+```bash
+npm run build
+```
+
+## How to deploy
+See AWS section in architecture document.
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
