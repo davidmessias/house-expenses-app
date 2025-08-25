@@ -1,3 +1,5 @@
+/*Comments to Build*/
+
 import NextAuth, { SessionStrategy, Account, Profile } from 'next-auth';
 import CognitoProvider from 'next-auth/providers/cognito';
 
