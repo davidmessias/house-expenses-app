@@ -1,103 +1,94 @@
-import Image from "next/image";
 
-export default function Home() {
+'use client';
+import { useEffect, useMemo, useState } from 'react';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import TransactionForm from '@/components/TransactionForm';
+import TransactionsTable from '@/components/TransactionsTable';
+import SummaryCards from '@/components/SummaryCards';
+import FiltersBar from '@/components/FiltersBar';
+
+type SessionUser = {
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+  id?: string;
+  username?: string;
+};
+
+type SessionData = {
+  user?: SessionUser;
+  expires?: string;
+};
+
+export default function Page() {
+  const { data: session, status } = useSession() as { data: SessionData; status: string };
+  const router = useRouter();
+  const [items, setItems] = useState<any[]>([]);
+  const [filters, setFilters] = useState<{ month?: string; direction?: string; mode?: string }>({});
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.replace('/unauthenticated');
+    }
+  }, [status, router]);
+
+  async function load() {
+    const params = new URLSearchParams();
+    if (filters.month) params.set('month', filters.month);
+    if (filters.direction) params.set('direction', filters.direction!);
+    if (filters.mode) params.set('mode', filters.mode!);
+    const res = await fetch(`/api/transactions?${params.toString()}`, { cache: 'no-store' });
+    try {
+      setItems(await res.json());
+    } catch (e) {
+      console.error('Failed to parse JSON from /api/transactions', e);
+      setItems([]);
+    }
+  }
+  useEffect(() => { if (status === 'authenticated') load(); }, [filters, status]);
+
+  const summary = useMemo(() => {
+    let income = 0, expense = 0;
+    for (const it of items) {
+      if (it.direction === 'credit') income += it.amountCents;
+      else expense += it.amountCents;
+    }
+    return { income, expense, balance: income - expense };
+  }, [items]);
+
+  if (status === 'loading') {
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+  }
+
+  if (status === 'unauthenticated') {
+    return null;
+  }
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center mb-2">
+        <div className="text-sm text-gray-700">
+          {session?.user?.username && (
+            <>Welcome <span className="font-semibold">{session.user.username}</span></>
+          )}
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+        <button
+          className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm"
+          onClick={async () => {
+            const { signOut } = await import('next-auth/react');
+            signOut({ callbackUrl: '/login' });
+          }}
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          Logout
+        </button>
+      </div>
+      <FiltersBar value={filters} onChange={setFilters} />
+      <SummaryCards {...summary} />
+      <div className="grid md:grid-cols-2 gap-6">
+        <TransactionForm onCreated={load} />
+        <TransactionsTable items={items} onChanged={load} />
+      </div>
     </div>
   );
 }

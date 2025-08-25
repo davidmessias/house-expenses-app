@@ -23,5 +23,5 @@ Resources:
           ViewerProtocolPolicy: redirect-to-https
         Origins:
           - Id: amplify-app
-            DomainName: <AMPLIFY_DOMAIN>
+            DomainName: finance.dmf-it.com
         WebACLId: !GetAtt HouseExpensesWAF.Arn

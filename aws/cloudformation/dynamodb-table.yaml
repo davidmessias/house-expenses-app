@@ -4,7 +4,7 @@ Resources:
   HouseExpensesTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: HouseExpenses
+      TableName: Finance
       AttributeDefinitions:
         - AttributeName: PK
           AttributeType: S

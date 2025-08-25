@@ -5,7 +5,7 @@ Resources:
     Type: AWS::Amplify::App
     Properties:
       Name: HouseExpensesAmplifyApp
-      Repository: <GITHUB_REPO_URL>
+      Repository: https://github.com/davidmessias/house-expenses-app.git
       Platform: WEB
       BuildSpec: |
         version: 1.0
