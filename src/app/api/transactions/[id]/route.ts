@@ -33,10 +33,15 @@ export async function PUT(req: NextRequest, context: { params: Promise<{ id: str
   return NextResponse.json({ ok: true });
 }
 
-export async function DELETE(_: NextRequest, context: { params: Promise<{ id: string }> }) {
+export async function DELETE(req: NextRequest, context: { params: { id: string } }) {
   const userId = await requireUser();
-  const { id } = await context.params;
+  const params = await context.params;
+  const { id } = params;
   const sk = decodeURIComponent(id);
-  await ddb.send(new DeleteCommand(key(userId, sk)));
-  return NextResponse.json({ ok: true });
+  try {
+    await ddb.send(new DeleteCommand(key(userId, sk)));
+    return NextResponse.json({ ok: true });
+  } catch (e) {
+    return NextResponse.json({ error: 'Delete failed', details: String(e) }, { status: 500 });
+  }
 }

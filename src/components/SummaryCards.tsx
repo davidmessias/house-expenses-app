@@ -13,7 +13,20 @@ export default function SummaryCards({ income, expense, balance }: { income: num
       </div>
       <div className="bg-white p-4 rounded-xl shadow">
         <div className="text-sm text-gray-500">Balance</div>
-        <div className="text-2xl font-semibold">€ {fromCents(balance)}</div>
+        <div
+          className="text-2xl font-bold"
+          style={{
+            color:
+              balance > 0
+            ? '#16a34a' // green-600
+            : balance < 0
+            ? '#dc2626' // red-600
+            : '#000000', // black
+            fontWeight: 'bold',
+          }}
+        >
+          € {fromCents(balance)}
+        </div>
       </div>
     </div>
   );

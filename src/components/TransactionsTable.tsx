@@ -2,11 +2,21 @@
 import { fromCents } from '@/lib/amount';
 
 export default function TransactionsTable({ items, onChanged }: { items: any[]; onChanged: () => void }) {
-  async function del(sk: string, pk: string) {
+  async function del(sk: string, pk: string, id?: string) {
     if (!confirm('Delete entry?')) return;
-    // Pass both PK and SK for deletion
-    const res = await fetch(`/api/transactions/${encodeURIComponent(sk)}?pk=${encodeURIComponent(pk)}`, { method: 'DELETE' });
-    if (res.ok) onChanged();
+    console.log(`[UI] Delete requested for transaction id: ${id}`);
+    try {
+      const res = await fetch(`/api/transactions/${encodeURIComponent(sk)}?pk=${encodeURIComponent(pk)}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const data = await res.json();
+        alert('Delete failed: ' + (data?.error || 'Unknown error'));
+      }
+    } catch (e) {
+      alert('Delete failed: ' + String(e));
+      console.error('Delete error:', e);
+    } finally {
+      onChanged(); // Always refresh UI after delete attempt
+    }
   }
   return (
     <div className="bg-white p-4 rounded-xl shadow">
@@ -34,7 +44,7 @@ export default function TransactionsTable({ items, onChanged }: { items: any[]; 
               <td>{it.direction}</td>
               <td className="text-right">{it.currency} {fromCents(it.amountCents)}</td>
               <td className="text-right">
-                <button onClick={() => del(it.sk, it.PK)} className="text-red-600">Delete</button>
+                <button onClick={() => del(it.SK, it.PK, it.id)} className="text-red-600">Delete</button>
               </td>
             </tr>
           ))}

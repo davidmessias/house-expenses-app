@@ -26,6 +26,7 @@ export default function Page() {
   const router = useRouter();
   const [items, setItems] = useState<any[]>([]);
   const [filters, setFilters] = useState<{ month?: string; direction?: string; mode?: string }>({});
+  // Removed refreshKey state
 
   useEffect(() => {
     if (status === 'unauthenticated') {
