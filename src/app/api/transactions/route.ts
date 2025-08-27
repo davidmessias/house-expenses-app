@@ -36,6 +36,15 @@ export const runtime = 'nodejs'; // Ensure Node.js (NOT Edge) so role-based cred
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+
+// Centralized logging control
+const ENABLE_API_LOGGING = process.env.ENABLE_API_LOGGING === 'true';
+
+function apiLog(...args: unknown[]) {
+  if (ENABLE_API_LOGGING) {
+    console.log('[API]', ...args);
+  }
+}
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, PutCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
 import { requireUser } from '@/lib/auth';
@@ -76,6 +85,10 @@ const CreateSchema = z.object({
 
 // === GET: list & filtered queries ===
 export async function GET(req: NextRequest) {
+  apiLog('GET /api/transactions - request', {
+    url: req.url,
+    searchParams: Object.fromEntries(new URL(req.url).searchParams.entries()),
+  });
   const userId = await requireUser();
   const { searchParams } = new URL(req.url);
   const ym = searchParams.get('month'); // YYYY-MM
@@ -92,7 +105,12 @@ export async function GET(req: NextRequest) {
           ExpressionAttributeValues: { ':p': `U#${userId}#YM#${ym}` },
         }),
       );
-      return NextResponse.json(res.Items ?? []);
+      const items = (res.Items ?? []).map(item => ({
+        ...item,
+        description: item.description ?? '',
+      }));
+      apiLog('GET /api/transactions - response', items);
+      return NextResponse.json(items);
     }
 
     if (dir) {
@@ -105,7 +123,12 @@ export async function GET(req: NextRequest) {
           ExpressionAttributeValues: { ':p': `U#${userId}#DIR#${code}` },
         }),
       );
-      return NextResponse.json(res.Items ?? []);
+      const items = (res.Items ?? []).map(item => ({
+        ...item,
+        description: item.description ?? '',
+      }));
+      apiLog('GET /api/transactions - response', items);
+      return NextResponse.json(items);
     }
 
     if (mode) {
@@ -117,7 +140,12 @@ export async function GET(req: NextRequest) {
           ExpressionAttributeValues: { ':p': `U#${userId}#MODE#${mode}` },
         }),
       );
-      return NextResponse.json(res.Items ?? []);
+      const items = (res.Items ?? []).map(item => ({
+        ...item,
+        description: item.description ?? '',
+      }));
+      apiLog('GET /api/transactions - response', items);
+      return NextResponse.json(items);
     }
 
     // default: latest 50 by SK descending
@@ -130,7 +158,12 @@ export async function GET(req: NextRequest) {
         ScanIndexForward: false,
       }),
     );
-    return NextResponse.json(res.Items ?? []);
+    const items = (res.Items ?? []).map(item => ({
+      ...item,
+      description: item.description ?? '',
+    }));
+    apiLog('GET /api/transactions - response', items);
+    return NextResponse.json(items);
   } catch (err: unknown) {
     console.error('[API] GET /api/transactions - DynamoDB error', err);
     const message = err instanceof Error ? err.message : String(err);
@@ -143,8 +176,12 @@ export async function GET(req: NextRequest) {
 
 // === POST: create transaction ===
 export async function POST(req: NextRequest) {
+  const body = await req.json().catch(() => null);
+  apiLog('POST /api/transactions - request', {
+    url: req.url,
+    body,
+  });
   const userId = await requireUser();
-  const body = await req.json();
   console.log('[API] POST /api/transactions - raw body', body);
 
   let parsed: z.infer<typeof CreateSchema>;
@@ -201,7 +238,8 @@ export async function POST(req: NextRequest) {
   try {
     await ddb().send(new PutCommand({ TableName: TABLE, Item: item }));
     console.log('[API] POST /api/transactions - item inserted', item);
-    return NextResponse.json(item, { status: 201 });
+  apiLog('POST /api/transactions - response', item);
+  return NextResponse.json(item, { status: 201 });
   } catch (err: unknown) {
     console.error('[API] POST /api/transactions - DynamoDB error', err, item);
     const message = err instanceof Error ? err.message : String(err);

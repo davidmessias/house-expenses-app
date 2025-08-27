@@ -1,4 +1,3 @@
-
 'use client';
 import { useEffect, useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
@@ -21,24 +20,24 @@ type SessionData = {
   expires?: string;
 };
 
+type Transaction = {
+  PK: string;
+  SK: string;
+  id?: string;
+  date: string;
+  kind: string;
+  mode: string;
+  direction: string;
+  description?: string;
+  currency: string;
+  amountCents: number;
+};
+
 export default function Page() {
   const { data: session, status } = useSession() as { data: SessionData; status: string };
   const router = useRouter();
-  type Transaction = {
-    PK: string;
-    SK: string;
-    id?: string;
-    date: string;
-    kind: string;
-    mode: string;
-    direction: string;
-    description?: string;
-    currency: string;
-    amountCents: number;
-  };
   const [items, setItems] = useState<Transaction[]>([]);
   const [filters, setFilters] = useState<{ month?: string; direction?: string; mode?: string }>({});
-  // Removed refreshKey state
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -59,7 +58,14 @@ export default function Page() {
       setItems([]);
     }
   }
-  // Remove useEffect for filters/status. Only call load() when month changes or after add/delete.
+
+  // Load transactions when component mounts and when month filter changes
+  useEffect(() => {
+    if (status === 'authenticated') {
+      load();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters.month, status]);
 
   const summary = useMemo(() => {
     let income = 0, expense = 0;
@@ -81,34 +87,51 @@ export default function Page() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center mb-2">
-        <div className="text-sm text-gray-700">
+        <div>
           {session?.user?.username && (
-            <>Welcome <span className="font-semibold">{session.user.username}</span></>
+            <span style={{ fontSize: 14, color: '#616161' }}>
+              Welcome <strong style={{ color: '#1976d2' }}>{session.user.username}</strong>
+            </span>
           )}
         </div>
         <button
-          className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 text-sm"
+          type="button"
+          style={{
+            backgroundColor: '#1976d2',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 4,
+            padding: '6px 16px',
+            fontSize: 14,
+            fontWeight: 500,
+            cursor: 'pointer',
+            boxShadow: '0 2px 4px rgba(25, 118, 210, 0.08)',
+            transition: 'background 0.2s',
+          }}
           onClick={async () => {
             const { signOut } = await import('next-auth/react');
             signOut({ callbackUrl: '/login' });
           }}
+          onMouseOver={e => (e.currentTarget.style.backgroundColor = '#1565c0')}
+          onMouseOut={e => (e.currentTarget.style.backgroundColor = '#1976d2')}
         >
           Logout
         </button>
       </div>
+      <p></p>      
       <FiltersBar
         value={filters}
         onChange={f => {
           setFilters(f);
-          if (f.month !== filters.month) {
-            load(); // Only refresh when month changes
-          }
         }}
       />
+      <p></p>
       <SummaryCards {...summary} />
       <div className="grid md:grid-cols-2 gap-6">
-  <TransactionForm onCreated={load} />
-  <TransactionsTable items={items} onChanged={load} />
+      <p></p>        
+        <TransactionForm onCreated={load} />
+      <p></p>        
+        <TransactionsTable items={items} onChanged={load} />
       </div>
     </div>
   );
